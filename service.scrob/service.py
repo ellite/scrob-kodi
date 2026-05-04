@@ -173,6 +173,8 @@ class ScrobMonitor(xbmc.Monitor):
             if item:
                 self._cache(item, ps)
                 _post('Player.OnAVChange', item, ps)
+                if not self._thread or not self._thread.is_alive():
+                    self._start_progress()
 
 
 def run():
