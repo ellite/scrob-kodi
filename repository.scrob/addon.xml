@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="repository.scrob" name="Scrob Repository" version="1.0.0" provider-name="Scrob">
+  <requires/>
+  <extension point="xbmc.addon.repository" name="Scrob Repository">
+    <info compressed="false">https://ellite.github.io/scrob-kodi/addons.xml</info>
+    <checksum>https://ellite.github.io/scrob-kodi/addons.xml.md5</checksum>
+    <datadir zip="true">https://ellite.github.io/scrob-kodi/</datadir>
+    <mirrorlist/>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Scrob Repository</summary>
+    <description lang="en_GB">Official Kodi add-on repository for Scrob.</description>
+    <platform>all</platform>
+    <license>GPL-3.0-only</license>
+    <source>https://github.com/ellite/scrob-kodi</source>
+  </extension>
+</addon>

@@ -1,0 +1,56 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'service.scrob/**'
+      - 'repository.scrob/**'
+      - 'generate.py'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read add-on version
+        id: version
+        run: |
+          VERSION=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          print(ET.parse('service.scrob/addon.xml').getroot().get('version'))
+          ")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "service.scrob version: $VERSION"
+
+      - name: Build ZIPs
+        run: |
+          mkdir -p _site/service.scrob _site/repository.scrob
+
+          (cd service.scrob && zip -r \
+            "../_site/service.scrob/service.scrob-${{ steps.version.outputs.version }}.zip" \
+            . -x "*.pyc" -x "__pycache__/*")
+
+          REPO_VERSION=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          print(ET.parse('repository.scrob/addon.xml').getroot().get('version'))
+          ")
+          (cd repository.scrob && zip -r \
+            "../_site/repository.scrob/repository.scrob-${REPO_VERSION}.zip" .)
+
+      - name: Generate addons.xml
+        run: |
+          python3 generate.py
+          cp addons.xml addons.xml.md5 _site/
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          force_orphan: true

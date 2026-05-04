@@ -1,0 +1,21 @@
+# AI agent instructions — internal only
+AGENTS.md
+
+# Build output
+_site/
+*.zip
+addons.xml
+addons.xml.md5
+
+# Python
+__pycache__/
+*.py[cod]
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
