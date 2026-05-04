@@ -54,3 +54,19 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
           force_orphan: true
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO_VERSION=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          print(ET.parse('repository.scrob/addon.xml').getroot().get('version'))
+          ")
+          ZIP="_site/repository.scrob/repository.scrob-${REPO_VERSION}.zip"
+          TAG="v${REPO_VERSION}"
+          if gh release view "$TAG" &>/dev/null; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          else
+            gh release create "$TAG" "$ZIP" --title "$TAG" --latest
+          fi

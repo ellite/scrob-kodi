@@ -14,7 +14,7 @@ Kodi repository and add-on for [Scrob](https://github.com/ellite/scrob) — the 
 ### Step 1 — Install the Scrob Repository
 
 1. In Kodi, go to **Settings → System → Add-ons** and enable **Unknown sources**.
-2. Download the latest `repository.scrob-*.zip` from the [Releases](https://github.com/ellite/scrob-kodi/releases) page (or directly from the [GitHub Pages site](https://ellite.github.io/scrob-kodi/repository.scrob/)).
+2. Download the latest `repository.scrob-*.zip` from the [Releases](https://github.com/ellite/scrob-kodi/releases) page.
 3. Go to **Add-ons → Install from zip file** and select the downloaded zip.
 4. Kodi will confirm that the Scrob Repository has been installed.
 
