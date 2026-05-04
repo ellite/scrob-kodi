@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings version="2">
-    <!-- 1. Give the section a unique ID -->
     <section id="scrob_addon">
-        <!-- 2. Ensure the category label is clear -->
-        <category id="cat_general" label="General">
-            <group id="1" label="Connection Settings">
-                <setting id="scrob_url" type="string" label="Scrob URL">
+        <category id="cat_general" label="30001">
+            <group id="1" label="30005">
+                <setting id="scrob_url" type="string" label="30002">
                     <default>http://localhost:7330</default>
                     <control type="edit" format="string"/>
                 </setting>
-                <setting id="api_key" type="string" label="API Key">
-                    <default>None</default>
+                <setting id="api_key" type="string" label="30003">
+                    <default></default>
                     <control type="edit" format="string"/>
                 </setting>
             </group>
-            
-            <group id="2" label="Timing">
-                <!-- 3. Fixed integer constraints and control -->
-                <setting id="progress_interval" type="integer" label="Progress interval (seconds)">
+            <group id="2">
+                <setting id="progress_interval" type="integer" label="30004">
                     <default>60</default>
                     <constraints minimum="10" step="10" maximum="300"/>
-                    <control type="edit" format="integer"/> 
+                    <control type="edit" format="integer"/>
                 </setting>
             </group>
         </category>

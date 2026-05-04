@@ -1,0 +1,22 @@
+msgid ""
+msgstr ""
+
+msgctxt "#30001"
+msgid "General"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Scrob URL"
+msgstr ""
+
+msgctxt "#30003"
+msgid "API Key"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Progress interval (seconds)"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Connection Settings"
+msgstr ""
