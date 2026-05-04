@@ -8,7 +8,7 @@
                     <control type="edit" format="string"/>
                 </setting>
                 <setting id="api_key" type="string" label="30003">
-                    <default></default>
+		    <default>key</default>
                     <control type="edit" format="string"/>
                 </setting>
             </group>
