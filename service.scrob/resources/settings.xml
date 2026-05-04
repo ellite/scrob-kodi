@@ -8,9 +8,10 @@
                     <control type="edit" format="string"/>
                 </setting>
                 <setting id="api_key" type="string" label="API Key">
+                    <default/>
                     <control type="edit" format="string"/>
                 </setting>
-                <setting id="progress_interval" type="integer" label="Progress report interval (seconds)">
+                <setting id="progress_interval" type="integer" label="Progress interval (seconds)">
                     <default>60</default>
                     <constraints minimum="10" maximum="300" step="10"/>
                     <control type="spinner" format="integer"/>
