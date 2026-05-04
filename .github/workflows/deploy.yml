@@ -27,6 +27,8 @@ jobs:
         run: |
           python3 generate.py
           cp addons.xml addons.xml.md5 _site/
+          cp service.scrob/icon.png    _site/service.scrob/icon.png
+          cp repository.scrob/icon.png _site/repository.scrob/icon.png
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
