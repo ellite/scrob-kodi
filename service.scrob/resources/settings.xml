@@ -8,7 +8,6 @@
                     <control type="edit" format="string"/>
                 </setting>
                 <setting id="api_key" type="string" label="API Key">
-                    <default></default>
                     <control type="edit" format="string"/>
                 </setting>
                 <setting id="progress_interval" type="integer" label="Progress report interval (seconds)">
