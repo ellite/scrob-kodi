@@ -11,6 +11,9 @@
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">Scrob Repository</summary>
     <description lang="en_GB">Official Kodi add-on repository for Scrob.</description>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
     <platform>all</platform>
     <license>GPL-3.0-only</license>
     <source>https://github.com/ellite/scrob-kodi</source>

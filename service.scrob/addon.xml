@@ -7,6 +7,9 @@
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">Scrobble plays to your Scrob instance</summary>
     <description lang="en_GB">Automatically tracks movies and TV shows in your self-hosted Scrob instance as you watch them in Kodi.</description>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
     <platform>all</platform>
     <license>GPL-3.0-only</license>
     <source>https://github.com/ellite/scrob-kodi</source>
