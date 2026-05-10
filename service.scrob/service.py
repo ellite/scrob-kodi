@@ -156,33 +156,31 @@ def _hms(secs):
 
 
 def _read_item(player):
-    """Read the current VideoInfoTag and player position. Returns (item, player_state) or (None, None)."""
+    """Read the current player item via JSON-RPC and position. Returns (item, player_state) or (None, None)."""
     try:
-        tag = player.getVideoInfoTag()
+        result = _kodi_rpc('Player.GetItem', {
+            'playerid': 1,
+            'properties': ['title', 'showtitle', 'season', 'episode', 'year', 'uniqueid'],
+        })
+        kodi_item = result.get('item', {})
     except Exception:
         return None, None
 
-    media_type = tag.getMediaType()
+    media_type = kodi_item.get('type', '')
     if media_type not in ('movie', 'episode'):
         return None, None
 
-    uid = {}
-    tmdb = tag.getUniqueID('tmdb')
-    tvdb = tag.getUniqueID('tvdb')
-    imdb = tag.getIMDBNumber()
-    if tmdb: uid['tmdb'] = tmdb
-    if tvdb: uid['tvdb'] = tvdb
-    if imdb: uid['imdb'] = imdb
+    uid = kodi_item.get('uniqueid') or {}
 
     item = {'type': media_type, 'uniqueid': uid}
     if media_type == 'movie':
-        item['title'] = tag.getTitle()
-        item['year'] = tag.getYear()
+        item['title'] = kodi_item.get('title', '')
+        item['year'] = kodi_item.get('year')
     else:
-        item['title'] = tag.getEpisodeTitle() or tag.getTitle()
-        item['showtitle'] = tag.getTVShowTitle()
-        item['season'] = tag.getSeason()
-        item['episode'] = tag.getEpisode()
+        item['title'] = kodi_item.get('title', '')
+        item['showtitle'] = kodi_item.get('showtitle', '')
+        item['season'] = kodi_item.get('season', 0)
+        item['episode'] = kodi_item.get('episode', 0)
 
     try:
         pos = player.getTime()
@@ -243,7 +241,6 @@ class ScrobMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
         if method == 'Player.OnPlay':
-            # Brief delay so Kodi populates VideoInfoTag before we read it
             xbmc.sleep(500)
             item, ps = _read_item(self._player)
             if item:
