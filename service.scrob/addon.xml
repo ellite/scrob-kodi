@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="service.scrob" name="Scrob" version="1.0.0" provider-name="Scrob">
+<addon id="service.scrob" name="Scrob" version="1.1.0" provider-name="Scrob">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -14,6 +14,10 @@
     <license>GPL-3.0-only</license>
     <source>https://github.com/ellite/scrob-kodi</source>
     <news>
+1.1.0
+- Sync settings: toggle scrobbling to Scrob and library sync from Scrob on startup
+- Rate movies and/or episodes after watching via a 1-10 star popup (optional, default off)
+
 1.0.0
 - Initial release
     </news>

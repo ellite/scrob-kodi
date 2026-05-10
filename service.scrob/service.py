@@ -2,6 +2,7 @@ import json
 import threading
 import xbmc
 import xbmcaddon
+import xbmcgui
 
 try:
     from urllib.request import Request, urlopen
@@ -19,11 +20,17 @@ def _settings():
         'url': a.getSetting('scrob_url').rstrip('/'),
         'key': a.getSetting('api_key').strip(),
         'interval': max(10, int(a.getSetting('progress_interval') or 60)),
+        'sync_to_scrob': a.getSettingBool('sync_to_scrob'),
+        'sync_from_scrob': a.getSettingBool('sync_from_scrob'),
+        'rate_on_completion': a.getSettingBool('rate_on_completion'),
+        'rate_episodes_on_completion': a.getSettingBool('rate_episodes_on_completion'),
     }
 
 
 def _post(method, item, player_state, ended=False):
     s = _settings()
+    if not s['sync_to_scrob']:
+        return
     if not s['key']:
         xbmc.log('[service.scrob] API key not configured — skipping', xbmc.LOGWARNING)
         return
@@ -38,6 +45,109 @@ def _post(method, item, player_state, ended=False):
         xbmc.log('[service.scrob] {}'.format(method), xbmc.LOGDEBUG)
     except Exception as exc:
         xbmc.log('[service.scrob] POST failed: {}'.format(exc), xbmc.LOGWARNING)
+
+
+def _post_rating(item, rating):
+    s = _settings()
+    if not s['key']:
+        return
+    uid = item.get('uniqueid', {})
+    payload = {
+        'media_type': item['type'],
+        'title': item.get('title', ''),
+        'year': item.get('year'),
+        'tmdb_id': uid.get('tmdb'),
+        'imdb_id': uid.get('imdb'),
+        'tvdb_id': uid.get('tvdb'),
+        'rating': float(rating),
+        'series_name': item.get('showtitle'),
+        'season_number': item.get('season'),
+        'episode_number': item.get('episode'),
+    }
+    url = '{}/api/proxy/webhooks/kodi/rating?api_key={}'.format(s['url'], quote(s['key'], safe=''))
+    try:
+        data = json.dumps(payload).encode('utf-8')
+        req = Request(url, data=data, headers={'Content-Type': 'application/json'})
+        urlopen(req, timeout=10)
+        xbmc.log('[service.scrob] Rating submitted: {}'.format(rating), xbmc.LOGDEBUG)
+    except Exception as exc:
+        xbmc.log('[service.scrob] Rating POST failed: {}'.format(exc), xbmc.LOGWARNING)
+
+
+def _ask_and_post_rating(item):
+    xbmc.sleep(1500)
+    if item['type'] == 'episode':
+        label = '{} S{:02d}E{:02d}'.format(
+            item.get('showtitle', ''), item.get('season', 0), item.get('episode', 0))
+    else:
+        label = item.get('title', '')
+    options = ['{0} {1}'.format(i, u'★' * i) for i in range(1, 11)]
+    idx = xbmcgui.Dialog().select('Rate: {}'.format(label), options)
+    if idx >= 0:
+        _post_rating(item, idx + 1)
+
+
+def _kodi_rpc(method, params=None):
+    query = json.dumps({'jsonrpc': '2.0', 'method': method, 'params': params or {}, 'id': 1})
+    return json.loads(xbmc.executeJSONRPC(query)).get('result', {})
+
+
+def _sync_from_scrob():
+    s = _settings()
+    if not s['key']:
+        xbmc.log('[service.scrob] API key not configured — skipping sync', xbmc.LOGWARNING)
+        return
+    url = '{}/api/proxy/webhooks/kodi/history?api_key={}'.format(s['url'], quote(s['key'], safe=''))
+    try:
+        resp = urlopen(Request(url), timeout=30)
+        library = json.loads(resp.read().decode('utf-8'))
+    except Exception as exc:
+        xbmc.log('[service.scrob] Sync from Scrob failed: {}'.format(exc), xbmc.LOGWARNING)
+        return
+
+    # Movies — match by TMDB ID
+    scrob_movies = {str(m['tmdb_id']): m['play_count'] for m in library.get('movies', [])}
+    if scrob_movies:
+        kodi_movies = _kodi_rpc('VideoLibrary.GetMovies',
+                                {'properties': ['uniqueid', 'playcount']}).get('movies', [])
+        for km in kodi_movies:
+            tmdb_id = str(km.get('uniqueid', {}).get('tmdb', '') or '')
+            if not tmdb_id:
+                continue
+            scrob_count = scrob_movies.get(tmdb_id, 0)
+            if scrob_count > km['playcount']:
+                _kodi_rpc('VideoLibrary.SetMovieDetails',
+                          {'movieid': km['movieid'], 'playcount': scrob_count})
+
+    # Episodes — match by show TMDB ID + season + episode number
+    scrob_eps = {}
+    for e in library.get('episodes', []):
+        key = (str(e['show_tmdb_id']), e['season_number'], e['episode_number'])
+        scrob_eps[key] = e['play_count']
+
+    if scrob_eps:
+        kodi_shows = _kodi_rpc('VideoLibrary.GetTVShows',
+                               {'properties': ['uniqueid']}).get('tvshows', [])
+        show_map = {}
+        for ks in kodi_shows:
+            tmdb_id = str(ks.get('uniqueid', {}).get('tmdb', '') or '')
+            if tmdb_id:
+                show_map[tmdb_id] = ks['tvshowid']
+
+        kodi_eps = _kodi_rpc('VideoLibrary.GetEpisodes',
+                             {'properties': ['tvshowid', 'season', 'episode', 'playcount']}).get('episodes', [])
+        kodi_ep_map = {(ke['tvshowid'], ke['season'], ke['episode']): ke for ke in kodi_eps}
+
+        for (show_tmdb, season, episode), scrob_count in scrob_eps.items():
+            tvshowid = show_map.get(show_tmdb)
+            if not tvshowid:
+                continue
+            ke = kodi_ep_map.get((tvshowid, season, episode))
+            if ke and scrob_count > ke['playcount']:
+                _kodi_rpc('VideoLibrary.SetEpisodeDetails',
+                          {'episodeid': ke['episodeid'], 'playcount': scrob_count})
+
+    xbmc.log('[service.scrob] Library sync from Scrob complete', xbmc.LOGINFO)
 
 
 def _hms(secs):
@@ -166,6 +276,13 @@ class ScrobMonitor(xbmc.Monitor):
                 except Exception:
                     ended = False
                 _post('Player.OnStop', item, ps, ended=ended)
+                if ended:
+                    s = _settings()
+                    if (item['type'] == 'movie' and s['rate_on_completion']) or \
+                       (item['type'] == 'episode' and s['rate_episodes_on_completion']):
+                        t = threading.Thread(target=_ask_and_post_rating, args=(item,))
+                        t.daemon = True
+                        t.start()
                 self._cache(None, None)
 
         elif method in ('Player.OnSeek', 'Player.OnAVChange'):
@@ -180,6 +297,8 @@ class ScrobMonitor(xbmc.Monitor):
 def run():
     xbmc.log('[service.scrob] Starting', xbmc.LOGINFO)
     monitor = ScrobMonitor()
+    if _settings()['sync_from_scrob']:
+        _sync_from_scrob()
     while not monitor.abortRequested():
         monitor.waitForAbort(1)
     monitor._stop_progress()

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 
 msgctxt "#30001"
-msgid "General"
+msgid "Connection"
 msgstr ""
 
 msgctxt "#30002"
@@ -19,4 +19,24 @@ msgstr ""
 
 msgctxt "#30005"
 msgid "Connection Settings"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Sync"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Send events to Scrob"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Keep Kodi library in sync from Scrob"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Rate movies after watching"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Rate episodes after watching"
 msgstr ""

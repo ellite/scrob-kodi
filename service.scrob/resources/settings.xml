@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings version="2">
     <section id="scrob_addon">
-        <category id="cat_general" label="30001">
+        <category id="cat_connection" label="30001">
             <group id="1" label="30005">
                 <setting id="scrob_url" type="string" label="30002">
                     <default>http://localhost:7330</default>
                     <control type="edit" format="string"/>
                 </setting>
                 <setting id="api_key" type="string" label="30003">
-		    <default>key</default>
+                    <default>key</default>
                     <control type="edit" format="string"/>
                 </setting>
             </group>
@@ -17,6 +17,26 @@
                     <default>60</default>
                     <constraints minimum="10" step="10" maximum="300"/>
                     <control type="edit" format="integer"/>
+                </setting>
+            </group>
+        </category>
+        <category id="cat_sync" label="30006">
+            <group id="3">
+                <setting id="sync_to_scrob" type="boolean" label="30007">
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="sync_from_scrob" type="boolean" label="30008">
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="rate_on_completion" type="boolean" label="30011">
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="rate_episodes_on_completion" type="boolean" label="30012">
+                    <default>false</default>
+                    <control type="toggle"/>
                 </setting>
             </group>
         </category>
