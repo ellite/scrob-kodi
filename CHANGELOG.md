@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.3
+
+- Fix episodes and movies not marked as watched after resume-from-stop
+
+## 1.1.2
+
+- Fix scrobbling not working for TV episodes (switch to JSON-RPC Player.GetItem)
+
+## 1.1.1
+
+- Fix scrobbling not working for TV episodes (retry reading metadata after OnPlay)
+
 ## 1.1.0
 
 - New **Connection** settings section (renamed from General)
