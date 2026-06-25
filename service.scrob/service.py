@@ -241,8 +241,12 @@ class ScrobMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
         if method == 'Player.OnPlay':
-            xbmc.sleep(500)
-            item, ps = _read_item(self._player)
+            item, ps = None, None
+            for _ in range(6):
+                xbmc.sleep(500)
+                item, ps = _read_item(self._player)
+                if item:
+                    break
             if item:
                 self._cache(item, ps)
                 _post('Player.OnPlay', item, ps)
