@@ -1,18 +1,24 @@
 import json
+import os
+import sys
 import threading
 import time
 import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcvfs
 
 try:
     from urllib.request import Request, urlopen
     from urllib.parse import quote
+    from urllib.error import HTTPError
 except ImportError:
-    from urllib2 import Request, urlopen
+    from urllib2 import Request, urlopen, HTTPError
     from urllib import quote
 
 ADDON_ID = 'service.scrob'
+
+DEVICE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code'
 
 
 def _settings():
@@ -31,30 +37,272 @@ def _settings():
     }
 
 
-def _post(method, item, player_state, ended=False):
+# ── Auth / HTTP ───────────────────────────────────────────────────────────────
+#
+# The add-on talks to Scrob with one of two credentials, in this order:
+#   1. an OAuth 2.0 device-grant token (RFC 8628), obtained via "Authorize with
+#      Scrob" in the settings and stored (with its refresh token) in auth.json;
+#   2. the legacy account API key from the settings.
+# The API key path is kept so that instances predating device linking — and
+# add-on installs that are never reconfigured — keep working unchanged.
+
+class _HTTPError(Exception):
+    def __init__(self, status, body):
+        super(_HTTPError, self).__init__('HTTP {}'.format(status))
+        self.status = status
+        self.body = body if isinstance(body, dict) else {}
+
+
+def _http_json(url, payload=None, headers=None, timeout=15):
+    h = {'Accept': 'application/json'}
+    if payload is not None:
+        h['Content-Type'] = 'application/json'
+    if headers:
+        h.update(headers)
+    data = json.dumps(payload).encode('utf-8') if payload is not None else None
+    try:
+        resp = urlopen(Request(url, data=data, headers=h), timeout=timeout)
+        raw = resp.read().decode('utf-8')
+    except HTTPError as exc:
+        try:
+            body = json.loads(exc.read().decode('utf-8'))
+        except Exception:
+            body = {}
+        raise _HTTPError(getattr(exc, 'code', 0), body)
+    return json.loads(raw) if raw else {}
+
+
+def _token_path():
+    prof = xbmcvfs.translatePath(xbmcaddon.Addon(id=ADDON_ID).getAddonInfo('profile'))
+    if not xbmcvfs.exists(prof):
+        xbmcvfs.mkdirs(prof)
+    return os.path.join(prof, 'auth.json')
+
+
+def _load_tokens():
+    try:
+        p = _token_path()
+        if not xbmcvfs.exists(p):
+            return {}
+        f = xbmcvfs.File(p)
+        try:
+            return json.loads(f.read() or '{}') or {}
+        finally:
+            f.close()
+    except Exception:
+        return {}
+
+
+def _save_tokens(resp):
+    data = {
+        'access_token': resp.get('access_token'),
+        'refresh_token': resp.get('refresh_token') or _load_tokens().get('refresh_token'),
+        'expires_at': time.time() + max(60, int(resp.get('expires_in') or 3600)) - 60,
+    }
+    try:
+        f = xbmcvfs.File(_token_path(), 'w')
+        try:
+            f.write(json.dumps(data))
+        finally:
+            f.close()
+    except Exception as exc:
+        xbmc.log('[service.scrob] could not persist tokens: {}'.format(exc), xbmc.LOGWARNING)
+    return data
+
+
+def _delete_tokens():
+    try:
+        p = _token_path()
+        if xbmcvfs.exists(p):
+            xbmcvfs.delete(p)
+    except Exception:
+        pass
+
+
+_refresh_lock = threading.Lock()
+
+
+def _refresh_token(stale_access=None):
     s = _settings()
-    if not s['sync_to_scrob']:
+    with _refresh_lock:
+        tok = _load_tokens()
+        cur, rt = tok.get('access_token'), tok.get('refresh_token')
+        if not rt or not s['url']:
+            return None
+        # Another thread may have refreshed while we waited for the lock.
+        if cur and cur != stale_access and time.time() < tok.get('expires_at', 0):
+            return cur
+        try:
+            resp = _http_json('{}/api/proxy/auth/device/token'.format(s['url']),
+                              {'grant_type': 'refresh_token', 'refresh_token': rt})
+        except _HTTPError as exc:
+            err = exc.body.get('error')
+            xbmc.log('[service.scrob] token refresh rejected: {}'.format(err or exc.status), xbmc.LOGWARNING)
+            if err in ('invalid_grant', 'invalid_request', 'unauthorized_client'):
+                _delete_tokens()
+            return None
+        except Exception as exc:
+            xbmc.log('[service.scrob] token refresh failed: {}'.format(exc), xbmc.LOGWARNING)
+            return None
+        return _save_tokens(resp).get('access_token')
+
+
+def _access_token():
+    tok = _load_tokens()
+    at = tok.get('access_token')
+    if not at:
+        return None
+    if time.time() < tok.get('expires_at', 0):
+        return at
+    return _refresh_token()
+
+
+def _api(path, payload=None, timeout=15):
+    """Call {url}/api/proxy/{path} — GET when payload is None, else POST.
+    Authenticates with the device token when the add-on has been authorized,
+    otherwise the legacy API key. Returns the parsed JSON body, or None on any
+    failure."""
+    s = _settings()
+    if not s['url']:
+        return None
+    token = _access_token()
+    if not token and not s['key']:
+        xbmc.log('[service.scrob] not connected to Scrob (not authorized, no API key)', xbmc.LOGWARNING)
+        return None
+
+    def _call(bearer):
+        url = '{}/api/proxy/{}'.format(s['url'], path)
+        headers = {}
+        if bearer:
+            headers['Authorization'] = 'Bearer ' + bearer
+        else:
+            url += ('&' if '?' in url else '?') + 'api_key=' + quote(s['key'], safe='')
+        return _http_json(url, payload, headers, timeout)
+
+    try:
+        return _call(token)
+    except _HTTPError as exc:
+        if exc.status == 401 and token:
+            fresh = _refresh_token(stale_access=token)
+            if fresh:
+                try:
+                    return _call(fresh)
+                except Exception as retry_exc:
+                    xbmc.log('[service.scrob] request retry failed: {}'.format(retry_exc), xbmc.LOGWARNING)
+                    return None
+        xbmc.log('[service.scrob] request failed: HTTP {} ({})'.format(exc.status, path), xbmc.LOGWARNING)
+        return None
+    except Exception as exc:
+        xbmc.log('[service.scrob] request failed: {} ({})'.format(exc, path), xbmc.LOGWARNING)
+        return None
+
+
+def _connected():
+    return bool(_access_token()) or bool(_settings()['key'])
+
+
+def _client_name():
+    name = ''
+    try:
+        name = xbmc.getInfoLabel('System.FriendlyName') or ''
+    except Exception:
+        pass
+    return u'Kodi – {}'.format(name) if name and name.lower() != 'kodi' else 'Kodi'
+
+
+def _device_authorize():
+    s = _settings()
+    dialog = xbmcgui.Dialog()
+    if not s['url']:
+        dialog.ok('Scrob', 'Set your Scrob URL in the add-on settings first.')
         return
-    if not s['key']:
-        xbmc.log('[service.scrob] API key not configured — skipping', xbmc.LOGWARNING)
+    try:
+        start = _http_json('{}/api/proxy/auth/device/code'.format(s['url']),
+                           {'client_name': _client_name(), 'scope': 'write'})
+    except _HTTPError as exc:
+        dialog.ok('Scrob', 'Could not start authorization (HTTP {}).\n'
+                           'Check the Scrob URL, and that your Scrob instance supports device linking.'.format(exc.status))
+        return
+    except Exception as exc:
+        dialog.ok('Scrob', 'Could not reach Scrob:\n{}'.format(exc))
+        return
+
+    device_code = start.get('device_code')
+    user_code = start.get('user_code', '')
+    verify = start.get('verification_uri') or '{}/link'.format(s['url'])
+    interval = max(2, int(start.get('interval') or 5))
+    expires_in = max(60, int(start.get('expires_in') or 900))
+    if not device_code or not user_code:
+        dialog.ok('Scrob', 'Scrob returned an unexpected response.')
+        return
+
+    msg = ('On a phone or computer, open:\n[B]{}[/B]\n\nand enter the code:  [B]{}[/B]').format(verify, user_code)
+    progress = xbmcgui.DialogProgress()
+    progress.create('Authorize Scrob', msg)
+
+    deadline = time.time() + expires_in
+    outcome = None
+    while time.time() < deadline and not progress.iscanceled():
+        progress.update(max(0, min(99, int(100 * (1 - (deadline - time.time()) / expires_in)))), msg)
+        for _ in range(interval):
+            if progress.iscanceled():
+                break
+            xbmc.sleep(1000)
+        if progress.iscanceled():
+            break
+        try:
+            token = _http_json('{}/api/proxy/auth/device/token'.format(s['url']),
+                               {'grant_type': DEVICE_GRANT_TYPE, 'device_code': device_code})
+        except _HTTPError as exc:
+            err = exc.body.get('error')
+            if err == 'authorization_pending':
+                continue
+            if err == 'slow_down':
+                interval += 5
+                continue
+            outcome = err or 'error'
+            break
+        except Exception:
+            continue
+        if token.get('access_token'):
+            _save_tokens(token)
+            outcome = 'ok'
+            break
+
+    progress.close()
+    if outcome == 'ok':
+        dialog.notification('Scrob', u'Authorized ✓', xbmcgui.NOTIFICATION_INFO)
+    elif outcome == 'access_denied':
+        dialog.notification('Scrob', 'Authorization was declined', xbmcgui.NOTIFICATION_WARNING)
+    elif outcome in ('expired_token', 'invalid_grant'):
+        dialog.notification('Scrob', 'The code expired — please try again', xbmcgui.NOTIFICATION_WARNING)
+    elif outcome:
+        dialog.notification('Scrob', 'Authorization failed', xbmcgui.NOTIFICATION_ERROR)
+
+
+def _forget_authorization():
+    dialog = xbmcgui.Dialog()
+    if not _load_tokens().get('access_token'):
+        dialog.notification('Scrob', 'Not authorized on this device', xbmcgui.NOTIFICATION_INFO)
+        return
+    if dialog.yesno('Scrob', 'Forget the Scrob authorization on this device?'):
+        _delete_tokens()
+        dialog.notification('Scrob', 'Signed out', xbmcgui.NOTIFICATION_INFO)
+
+
+# ── Scrobbling ────────────────────────────────────────────────────────────────
+
+def _post(method, item, player_state, ended=False):
+    if not _settings()['sync_to_scrob']:
         return
     payload = {'method': method, 'item': item, 'player': player_state}
     if method == 'Player.OnStop':
         payload['params'] = {'data': {'end': ended}}
-    url = '{}/api/proxy/webhooks/kodi?api_key={}'.format(s['url'], quote(s['key'], safe=''))
-    try:
-        data = json.dumps(payload).encode('utf-8')
-        req = Request(url, data=data, headers={'Content-Type': 'application/json'})
-        urlopen(req, timeout=10)
+    if _api('webhooks/kodi', payload) is not None:
         xbmc.log('[service.scrob] {}'.format(method), xbmc.LOGDEBUG)
-    except Exception as exc:
-        xbmc.log('[service.scrob] POST failed: {}'.format(exc), xbmc.LOGWARNING)
 
 
 def _post_rating(item, rating):
-    s = _settings()
-    if not s['key']:
-        return
     uid = item.get('uniqueid', {})
     payload = {
         'media_type': item['type'],
@@ -68,14 +316,8 @@ def _post_rating(item, rating):
         'season_number': item.get('season'),
         'episode_number': item.get('episode'),
     }
-    url = '{}/api/proxy/webhooks/kodi/rating?api_key={}'.format(s['url'], quote(s['key'], safe=''))
-    try:
-        data = json.dumps(payload).encode('utf-8')
-        req = Request(url, data=data, headers={'Content-Type': 'application/json'})
-        urlopen(req, timeout=10)
+    if _api('webhooks/kodi/rating', payload) is not None:
         xbmc.log('[service.scrob] Rating submitted: {}'.format(rating), xbmc.LOGDEBUG)
-    except Exception as exc:
-        xbmc.log('[service.scrob] Rating POST failed: {}'.format(exc), xbmc.LOGWARNING)
 
 
 def _ask_and_post_rating(item):
@@ -107,8 +349,8 @@ def _sync_from_scrob(monitor=None):
     scrobbled straight back to Scrob.
     """
     s = _settings()
-    if not s['key']:
-        xbmc.log('[service.scrob] API key not configured — skipping sync', xbmc.LOGWARNING)
+    if not _connected():
+        xbmc.log('[service.scrob] not connected to Scrob — skipping sync', xbmc.LOGWARNING)
         return
 
     def _mute(seconds=90):
@@ -117,26 +359,17 @@ def _sync_from_scrob(monitor=None):
 
     _mute(600)
 
-    base = '{}/api/proxy/webhooks/kodi'.format(s['url'])
-    key = quote(s['key'], safe='')
-
-    def _fetch(path):
-        resp = urlopen(Request('{}/{}?api_key={}'.format(base, path, key)), timeout=30)
-        return json.loads(resp.read().decode('utf-8'))
-
-    try:
-        library = _fetch('history')
-    except Exception as exc:
-        xbmc.log('[service.scrob] Sync from Scrob failed: {}'.format(exc), xbmc.LOGWARNING)
+    library = _api('webhooks/kodi/history', timeout=30)
+    if library is None:
+        xbmc.log('[service.scrob] Sync from Scrob failed', xbmc.LOGWARNING)
         _mute(5)
         return
 
     ratings = {'movies': [], 'episodes': []}
     if s['sync_ratings_from_scrob']:
-        try:
-            ratings = _fetch('ratings')
-        except Exception as exc:
-            xbmc.log('[service.scrob] Ratings sync failed: {}'.format(exc), xbmc.LOGWARNING)
+        fetched = _api('webhooks/kodi/ratings', timeout=30)
+        if fetched is not None:
+            ratings = fetched
 
     def _want_rating(value):
         try:
@@ -374,8 +607,7 @@ class ScrobMonitor(xbmc.Monitor):
     def _handle_library_update(self, data):
         """React to a manual 'mark as watched' (or Kodi auto-marking a title
         watched near the end of playback) by scrobbling it to Scrob."""
-        s = _settings()
-        if not s['sync_to_scrob'] or not s['key']:
+        if not _settings()['sync_to_scrob'] or not _connected():
             return
         if time.time() < self._suppress_onupdate_until:
             return
@@ -491,4 +723,13 @@ def run():
     xbmc.log('[service.scrob] Stopped', xbmc.LOGINFO)
 
 
-run()
+# Entry point. Kodi starts this file as the background service with no
+# arguments; the settings "Authorize" / "Sign out" buttons re-invoke it via
+# RunScript with an action argument.
+_ACTION = sys.argv[1] if len(sys.argv) > 1 else ''
+if _ACTION == 'authorize':
+    _device_authorize()
+elif _ACTION == 'signout':
+    _forget_authorization()
+else:
+    run()

@@ -26,14 +26,18 @@ Kodi repository and add-on for [Scrob](https://github.com/ellite/scrob) — the 
 ### Step 3 — Configure the add-on
 
 1. Open the add-on settings (**Add-ons → My add-ons → Services → Scrob → Configure**).
-2. Set the following:
+2. Set the **Scrob URL**, then connect your account one of two ways:
+   - **Authorize with Scrob** (recommended) — click the button, then open `your-scrob-url/link` on any device, sign in, and approve. This works with 2FA accounts, never puts your password or a long key into Kodi, and each Kodi box can be revoked on its own from Scrob's **Connections → Connected Apps**.
+   - **API Key** — paste the key from Scrob's **Connections → API Key**. Still fully supported; the only option if your Scrob instance predates device linking.
+3. Adjust the remaining settings if you like:
 
 ### Connection
 
 | Setting | Description | Default |
 |---|---|---|
 | **Scrob URL** | Base URL of your Scrob instance | `http://localhost:7330` |
-| **API Key** | API key from your Scrob instance | _(empty)_ |
+| **Authorize with Scrob** / **Sign out of Scrob** | Start or clear the device-code authorization for this Kodi box | — |
+| **API Key** | Account API key — fallback when not using **Authorize with Scrob** | _(empty)_ |
 | **Progress interval (seconds)** | How often playback progress is sent | `60` |
 
 ### Sync
@@ -47,11 +51,13 @@ Kodi repository and add-on for [Scrob](https://github.com/ellite/scrob) — the 
 | **Re-sync from Scrob every (minutes)** | Repeat the pull on this interval so several Kodi boxes converge; `0` = startup only | `0` |
 | **Rate movies / episodes after watching** | Show a 1–10 star popup when a title finishes | off |
 
-3. Restart Kodi (or the add-on) for the settings to take effect.
+4. Restart Kodi (or the add-on) for the settings to take effect.
 
 ## How it works
 
 `service.scrob` runs as a background service in Kodi and listens for player events (play, pause, resume, seek, stop). When a movie or episode starts playing, it reads the metadata (title, year, TMDB/TVDB/IMDB IDs) and sends it to your Scrob instance via the webhook API. Progress updates are sent at the configured interval so Scrob can track your position in real time.
+
+Requests authenticate with the OAuth device token from **Authorize with Scrob** when present (it is refreshed automatically), otherwise with the **API Key**. The token is stored in the add-on's profile directory (`auth.json`), separate from the exported settings.
 
 A title is reported as a completed watch when playback passes the **Mark watched at** percentage, when it plays to the very end, or when you mark it watched from the Kodi menu (Kodi's own `VideoLibrary.OnUpdate` event).
 

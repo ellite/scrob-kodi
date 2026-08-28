@@ -2,6 +2,7 @@
 
 ## 1.2.0
 
+- **Authorize with Scrob**: link the add-on with an OAuth device code (open `your-scrob-url/link`, sign in, approve) instead of pasting an API key. Works with 2FA accounts, revocable per-device from Connections → Connected Apps. The API key still works and stays as a fallback
 - Mark a title watched once playback passes a configurable percentage of the runtime (**Mark watched at**, default 90%), instead of only when it plays to the very end (#2)
 - Scrobble titles that are marked as watched from the Kodi menu, or auto-marked watched by Kodi near the end of playback (#2)
 - **Also sync ratings from Scrob**: pull your Scrob ratings into the Kodi library as `userrating` (only fills titles with no local rating) (#1)

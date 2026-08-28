@@ -15,6 +15,7 @@
     <source>https://github.com/ellite/scrob-kodi</source>
     <news>
 1.2.0
+- Authorize with Scrob using a device code (open your-scrob-url/link and approve) instead of an API key; the API key still works as a fallback
 - Mark a title watched once playback passes a configurable % of the runtime (default 90%), instead of only when it plays to the very end
 - Scrobble titles marked watched from the Kodi menu (or auto-marked by Kodi)
 - Sync ratings from Scrob back into the Kodi library (userrating)

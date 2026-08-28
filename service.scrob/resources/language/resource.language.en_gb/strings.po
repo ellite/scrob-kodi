@@ -52,3 +52,15 @@ msgstr ""
 msgctxt "#30015"
 msgid "Mark watched at (% of runtime)"
 msgstr ""
+
+msgctxt "#30016"
+msgid "Authorize with Scrob (recommended)"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Sign out of Scrob"
+msgstr ""
+
+msgctxt "#30018"
+msgid "Only needed if you don't use \"Authorize with Scrob\". Found in Scrob under Connections -> API Key."
+msgstr ""

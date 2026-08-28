@@ -7,8 +7,22 @@
                     <default>http://localhost:7330</default>
                     <control type="edit" format="string"/>
                 </setting>
-                <setting id="api_key" type="string" label="30003">
-                    <default>key</default>
+                <setting id="authorize_action" type="action" label="30016">
+                    <level>0</level>
+                    <data>RunScript(special://home/addons/service.scrob/service.py,authorize)</data>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+                <setting id="signout_action" type="action" label="30017">
+                    <level>0</level>
+                    <data>RunScript(special://home/addons/service.scrob/service.py,signout)</data>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+                <setting id="api_key" type="string" label="30003" help="30018">
+                    <default></default>
                     <control type="edit" format="string"/>
                 </setting>
             </group>
