@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="service.scrob" name="Scrob" version="1.2.0" provider-name="Scrob">
+<addon id="service.scrob" name="Scrob" version="1.2.1" provider-name="Scrob">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -14,6 +14,9 @@
     <license>GPL-3.0-only</license>
     <source>https://github.com/ellite/scrob-kodi</source>
     <news>
+1.2.1
+- Connection settings now show a Status line: authorized, using an API key, or not connected
+
 1.2.0
 - Authorize with Scrob using a device code (open your-scrob-url/link and approve) instead of an API key; the API key still works as a fallback
 - Mark a title watched once playback passes a configurable % of the runtime (default 90%), instead of only when it plays to the very end

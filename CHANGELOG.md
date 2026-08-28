@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Connection settings show a read-only **Status** line — whether the add-on is authorized with Scrob, using an API key, or not connected
+
 ## 1.2.0
 
 - **Authorize with Scrob**: link the add-on with an OAuth device code (open `your-scrob-url/link`, sign in, approve) instead of pasting an API key. Works with 2FA accounts, revocable per-device from Connections → Connected Apps. The API key still works and stays as a fallback

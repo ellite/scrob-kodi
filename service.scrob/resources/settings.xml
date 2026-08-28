@@ -7,6 +7,11 @@
                     <default>http://localhost:7330</default>
                     <control type="edit" format="string"/>
                 </setting>
+                <setting id="conn_status" type="string" label="30019">
+                    <level>0</level>
+                    <default>Not connected</default>
+                    <control type="label" format="string"/>
+                </setting>
                 <setting id="authorize_action" type="action" label="30016">
                     <level>0</level>
                     <data>RunScript(special://home/addons/service.scrob/service.py,authorize)</data>

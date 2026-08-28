@@ -270,6 +270,7 @@ def _device_authorize():
             break
 
     progress.close()
+    _update_connection_status()
     if outcome == 'ok':
         dialog.notification('Scrob', u'Authorized ✓', xbmcgui.NOTIFICATION_INFO)
     elif outcome == 'access_denied':
@@ -287,7 +288,30 @@ def _forget_authorization():
         return
     if dialog.yesno('Scrob', 'Forget the Scrob authorization on this device?'):
         _delete_tokens()
+        _update_connection_status()
         dialog.notification('Scrob', 'Signed out', xbmcgui.NOTIFICATION_INFO)
+
+
+def _connection_status_text():
+    """One-line summary of how the add-on will authenticate to Scrob, shown
+    read-only at the top of the Connection settings."""
+    if _load_tokens().get('access_token'):
+        return 'Authorized with Scrob on this device'
+    if _settings()['key']:
+        return 'Connected with an API key'
+    return 'Not connected — use "Authorize with Scrob", or set an API key'
+
+
+def _update_connection_status():
+    try:
+        a = xbmcaddon.Addon(id=ADDON_ID)
+        text = _connection_status_text()
+        # Only write on a real change — setSetting re-fires onSettingsChanged,
+        # which calls back here.
+        if a.getSetting('conn_status') != text:
+            a.setSetting('conn_status', text)
+    except Exception:
+        pass
 
 
 # ── Scrobbling ────────────────────────────────────────────────────────────────
@@ -636,6 +660,9 @@ class ScrobMonitor(xbmc.Monitor):
         _post('Player.OnStop', item, ps, ended=True)
         self._mark_scrobbled(item)
 
+    def onSettingsChanged(self):
+        _update_connection_status()
+
     def onNotification(self, sender, method, data):
         if method == 'Player.OnPlay':
             item, ps = None, None
@@ -707,6 +734,7 @@ class ScrobMonitor(xbmc.Monitor):
 
 def run():
     xbmc.log('[service.scrob] Starting', xbmc.LOGINFO)
+    _update_connection_status()
     monitor = ScrobMonitor()
     if _settings()['sync_from_scrob']:
         _sync_from_scrob(monitor)

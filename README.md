@@ -36,6 +36,7 @@ Kodi repository and add-on for [Scrob](https://github.com/ellite/scrob) — the 
 | Setting | Description | Default |
 |---|---|---|
 | **Scrob URL** | Base URL of your Scrob instance | `http://localhost:7330` |
+| **Status** | Read-only — whether the add-on is authorized, using an API key, or not connected | — |
 | **Authorize with Scrob** / **Sign out of Scrob** | Start or clear the device-code authorization for this Kodi box | — |
 | **API Key** | Account API key — fallback when not using **Authorize with Scrob** | _(empty)_ |
 | **Progress interval (seconds)** | How often playback progress is sent | `60` |
