@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2
+
+- Fix: all add-on settings are now visible at the **Basic** settings level — the Scrob URL, API Key and Sync options were only shown at Standard or higher
+- Fix: the **Status** line renders on Kodi versions that rejected the previous `label` control definition
+
 ## 1.2.1
 
 - Connection settings show a read-only **Status** line — whether the add-on is authorized with Scrob, using an API key, or not connected
