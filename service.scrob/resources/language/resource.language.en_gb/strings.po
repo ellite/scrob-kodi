@@ -40,3 +40,15 @@ msgstr ""
 msgctxt "#30012"
 msgid "Rate episodes after watching"
 msgstr ""
+
+msgctxt "#30013"
+msgid "Also sync ratings from Scrob"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Re-sync from Scrob every (minutes, 0 = startup only)"
+msgstr ""
+
+msgctxt "#30015"
+msgid "Mark watched at (% of runtime)"
+msgstr ""

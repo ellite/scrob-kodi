@@ -28,17 +28,34 @@ Kodi repository and add-on for [Scrob](https://github.com/ellite/scrob) — the 
 1. Open the add-on settings (**Add-ons → My add-ons → Services → Scrob → Configure**).
 2. Set the following:
 
+### Connection
+
 | Setting | Description | Default |
 |---|---|---|
 | **Scrob URL** | Base URL of your Scrob instance | `http://localhost:7330` |
 | **API Key** | API key from your Scrob instance | _(empty)_ |
-| **Progress report interval** | How often (in seconds) playback progress is sent | `60` |
+| **Progress interval (seconds)** | How often playback progress is sent | `60` |
+
+### Sync
+
+| Setting | Description | Default |
+|---|---|---|
+| **Send events to Scrob** | Scrobble playback events (play/pause/resume/stop) to Scrob | on |
+| **Mark watched at (% of runtime)** | Playback past this percentage counts as a completed watch, even if you stop before the very end | `90` |
+| **Keep Kodi library in sync from Scrob** | On startup, raise local play counts to match Scrob | on |
+| **Also sync ratings from Scrob** | Pull Scrob ratings into the library as `userrating` (only fills titles that have no local rating) | on |
+| **Re-sync from Scrob every (minutes)** | Repeat the pull on this interval so several Kodi boxes converge; `0` = startup only | `0` |
+| **Rate movies / episodes after watching** | Show a 1–10 star popup when a title finishes | off |
 
 3. Restart Kodi (or the add-on) for the settings to take effect.
 
 ## How it works
 
 `service.scrob` runs as a background service in Kodi and listens for player events (play, pause, resume, seek, stop). When a movie or episode starts playing, it reads the metadata (title, year, TMDB/TVDB/IMDB IDs) and sends it to your Scrob instance via the webhook API. Progress updates are sent at the configured interval so Scrob can track your position in real time.
+
+A title is reported as a completed watch when playback passes the **Mark watched at** percentage, when it plays to the very end, or when you mark it watched from the Kodi menu (Kodi's own `VideoLibrary.OnUpdate` event).
+
+When **Keep Kodi library in sync from Scrob** is enabled, the add-on pulls your watch counts (and, optionally, ratings) from Scrob on startup — and, if **Re-sync from Scrob every** is set, on that interval — and writes them into the local library so watched state carries across multiple Kodi instances. Local values are only ever raised, never lowered, and a local rating is never overwritten.
 
 Only `movie` and `episode` media types are scrobbled; music and other content is ignored.
 

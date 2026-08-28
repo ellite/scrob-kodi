@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+- Mark a title watched once playback passes a configurable percentage of the runtime (**Mark watched at**, default 90%), instead of only when it plays to the very end (#2)
+- Scrobble titles that are marked as watched from the Kodi menu, or auto-marked watched by Kodi near the end of playback (#2)
+- **Also sync ratings from Scrob**: pull your Scrob ratings into the Kodi library as `userrating` (only fills titles with no local rating) (#1)
+- **Re-sync from Scrob every N minutes**: optional periodic pull so several Kodi boxes sharing one Scrob account stay in sync, not just at startup (#3)
+
 ## 1.1.3
 
 - Fix episodes and movies not marked as watched after resume-from-stop

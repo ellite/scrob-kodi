@@ -26,9 +26,29 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
+                <setting id="watched_threshold" type="integer" label="30015">
+                    <default>90</default>
+                    <constraints minimum="50" step="5" maximum="100"/>
+                    <control type="edit" format="integer"/>
+                </setting>
                 <setting id="sync_from_scrob" type="boolean" label="30008">
                     <default>true</default>
                     <control type="toggle"/>
+                </setting>
+                <setting id="sync_ratings_from_scrob" type="boolean" label="30013">
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable" setting="sync_from_scrob" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
+                <setting id="sync_interval" type="integer" label="30014">
+                    <default>0</default>
+                    <constraints minimum="0" step="15" maximum="360"/>
+                    <control type="edit" format="integer"/>
+                    <dependencies>
+                        <dependency type="enable" setting="sync_from_scrob" operator="is">true</dependency>
+                    </dependencies>
                 </setting>
                 <setting id="rate_on_completion" type="boolean" label="30011">
                     <default>false</default>
