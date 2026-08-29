@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3
+
+- Fix: the **Status** line was not rendering in the settings screen (Kodi settings format has no `label` control type; updated to use a disabled `edit` control)
+- Fix: the **API Key** field was missing from the settings screen entirely — Kodi silently drops a `type="string"` setting that has an empty default and isn't marked `<allowempty>`. Regressed in 1.2.0 when the placeholder default was removed
+
 ## 1.2.2
 
 - Fix: all add-on settings are now visible at the **Basic** settings level — the Scrob URL, API Key and Sync options were only shown at Standard or higher

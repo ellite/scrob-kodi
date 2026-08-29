@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<settings version="2">
-    <section id="scrob_addon">
+<settings version="1">
+    <section id="service.scrob">
         <category id="cat_connection" label="30001">
             <group id="1" label="30005">
                 <setting id="scrob_url" type="string" label="30002">
                     <level>0</level>
                     <default>http://localhost:7330</default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <control type="edit" format="string"/>
                 </setting>
                 <setting id="conn_status" type="string" label="30019">
@@ -14,25 +17,31 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
-                    <control type="label"/>
+                    <control type="edit" format="string"/>
+                    <dependencies>
+                        <dependency type="enable" setting="conn_status" operator="is">__never__</dependency>
+                    </dependencies>
                 </setting>
                 <setting id="authorize_action" type="action" label="30016">
                     <level>0</level>
-                    <data>RunScript(special://home/addons/service.scrob/service.py,authorize)</data>
                     <control type="button" format="action">
+                        <data>RunScript(special://home/addons/service.scrob/service.py,authorize)</data>
                         <close>true</close>
                     </control>
                 </setting>
                 <setting id="signout_action" type="action" label="30017">
                     <level>0</level>
-                    <data>RunScript(special://home/addons/service.scrob/service.py,signout)</data>
                     <control type="button" format="action">
+                        <data>RunScript(special://home/addons/service.scrob/service.py,signout)</data>
                         <close>true</close>
                     </control>
                 </setting>
                 <setting id="api_key" type="string" label="30003" help="30018">
                     <level>0</level>
                     <default></default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <control type="edit" format="string"/>
                 </setting>
             </group>

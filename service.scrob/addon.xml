@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="service.scrob" name="Scrob" version="1.2.2" provider-name="Scrob">
+<addon id="service.scrob" name="Scrob" version="1.2.3" provider-name="Scrob">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -14,6 +14,10 @@
     <license>GPL-3.0-only</license>
     <source>https://github.com/ellite/scrob-kodi</source>
     <news>
+1.2.3
+- Fix: the Status line now renders correctly in settings (switched from invalid label control to disabled edit control)
+- Fix: the API Key field was missing from the settings entirely (Kodi drops an empty text setting that isn't marked as allowing an empty value)
+
 1.2.2
 - Fix: all settings are now shown at the Basic settings level (Scrob URL, API Key and Sync options were hidden below Standard)
 - Fix: the Status line now renders on all Kodi versions

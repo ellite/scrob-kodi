@@ -54,7 +54,7 @@ msgid "Mark watched at (% of runtime)"
 msgstr ""
 
 msgctxt "#30016"
-msgid "Authorize with Scrob (recommended)"
+msgid "Authorize with Scrob"
 msgstr ""
 
 msgctxt "#30017"
