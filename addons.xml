@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addons>
+  <addon id="service.scrob" name="Scrob" version="1.2.3" provider-name="Scrob">
+    <requires>
+      <import addon="xbmc.python" version="3.0.0" />
+    </requires>
+    <extension point="xbmc.service" library="service.py" start="login" />
+    <extension point="xbmc.addon.metadata">
+      <summary lang="en_GB">Scrobble plays to your Scrob instance</summary>
+      <description lang="en_GB">Automatically tracks movies and TV shows in your self-hosted Scrob instance as you watch them in Kodi.</description>
+      <assets>
+        <icon>icon.png</icon>
+      </assets>
+      <platform>all</platform>
+      <license>GPL-3.0-only</license>
+      <source>https://github.com/ellite/scrob-kodi</source>
+      <news>
+1.2.3
+- Fix: the Status line now renders correctly in settings (switched from invalid label control to disabled edit control)
+- Fix: the API Key field was missing from the settings entirely (Kodi drops an empty text setting that isn't marked as allowing an empty value)
+
+1.2.2
+- Fix: all settings are now shown at the Basic settings level (Scrob URL, API Key and Sync options were hidden below Standard)
+- Fix: the Status line now renders on all Kodi versions
+
+1.2.1
+- Connection settings now show a Status line: authorized, using an API key, or not connected
+
+1.2.0
+- Authorize with Scrob using a device code (open your-scrob-url/link and approve) instead of an API key; the API key still works as a fallback
+- Mark a title watched once playback passes a configurable % of the runtime (default 90%), instead of only when it plays to the very end
+- Scrobble titles marked watched from the Kodi menu (or auto-marked by Kodi)
+- Sync ratings from Scrob back into the Kodi library (userrating)
+- Optionally re-sync from Scrob on an interval so several Kodi boxes converge
+
+1.1.3
+- Fix episodes and movies not marked as watched after resume-from-stop
+
+1.1.2
+- Fix scrobbling not working for TV episodes (switch to JSON-RPC Player.GetItem)
+
+1.1.1
+- Fix scrobbling not working for TV episodes (retry reading metadata after OnPlay)
+
+1.1.0
+- Sync settings: toggle scrobbling to Scrob and library sync from Scrob on startup
+- Rate movies and/or episodes after watching via a 1-10 star popup (optional, default off)
+
+1.0.0
+- Initial release
+    </news>
+    </extension>
+  </addon>
+  <addon id="repository.scrob" name="Scrob Repository" version="1.0.0" provider-name="Scrob">
+    <requires />
+    <extension point="xbmc.addon.repository" name="Scrob Repository">
+      <dir>
+        <info compressed="false">https://ellite.github.io/scrob-kodi/addons.xml</info>
+        <checksum>https://ellite.github.io/scrob-kodi/addons.xml.md5</checksum>
+        <datadir zip="true">https://ellite.github.io/scrob-kodi/</datadir>
+      </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+      <summary lang="en_GB">Scrob Repository</summary>
+      <description lang="en_GB">Official Kodi add-on repository for Scrob.</description>
+      <assets>
+        <icon>icon.png</icon>
+      </assets>
+      <platform>all</platform>
+      <license>GPL-3.0-only</license>
+      <source>https://github.com/ellite/scrob-kodi</source>
+    </extension>
+  </addon>
+</addons>
