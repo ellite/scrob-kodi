@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.3.0
 
+- New rating popup (#5): landscape and Scrob-branded, with the title's poster and fanart from your Kodi library, a row of ten stars that fill up to your selection and the number shown large underneath, replacing the plain 1 to 10 list. Left/Right to choose, OK to rate, Back to skip
+- New **Default rating in the rating popup** setting (1 to 10, default 5) so the popup opens on a sensible value and a remote only needs OK
 - Fix: syncing from Scrob could loop forever, re-scrobbling everything as new plays under one date. Kodi reports the playcounts the add-on writes itself as "marked as watched", the time-based mute could expire before those notifications arrived, and every echo added a play in Scrob that pushed the next sync's count higher. The add-on now recognises its own writes by item, only fills titles Kodi has as unwatched (never raises an existing count), and stops scrobbling mark-as-watched for 10 minutes if more than 30 arrive within a minute (a library scan or sync, not a person)
 - Library mark-as-watched scrobbles are now flagged so Scrob ignores them for titles it already has a play for
 

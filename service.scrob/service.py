@@ -33,6 +33,7 @@ def _settings():
         'sync_interval': max(0, int(a.getSetting('sync_interval') or 0)),
         'watched_threshold': min(100, max(50, int(a.getSetting('watched_threshold') or 90))),
         'rate_on_completion': a.getSettingBool('rate_on_completion'),
+        'rating_default': min(10, max(1, int(a.getSetting('rating_default') or 5))),
         'rate_episodes_on_completion': a.getSettingBool('rate_episodes_on_completion'),
     }
 
@@ -319,7 +320,11 @@ def _update_connection_status():
 def _post(method, item, player_state, ended=False, source=None):
     if not _settings()['sync_to_scrob']:
         return
-    payload = {'method': method, 'item': item, 'player': player_state}
+    # Keys starting with '_' are add-on-local (e.g. artwork for the rating
+    # popup) and are not part of what Scrob is sent.
+    payload = {'method': method,
+               'item': {k: v for k, v in item.items() if not k.startswith('_')},
+               'player': player_state}
     if source:
         # Lets Scrob tell a library "mark as watched" apart from real playback.
         payload['source'] = source
@@ -347,6 +352,78 @@ def _post_rating(item, rating):
         xbmc.log('[service.scrob] Rating submitted: {}'.format(rating), xbmc.LOGDEBUG)
 
 
+def _pick_art(art, media_type):
+    """(poster, fanart) URLs for the rating popup from a Kodi art dict. An
+    episode borrows its show's poster/fanart - an episode still is a poor fit
+    for a portrait slot."""
+    art = art or {}
+    if media_type == 'episode':
+        poster = art.get('tvshow.poster') or art.get('season.poster') or art.get('poster') or art.get('thumb')
+        fanart = art.get('tvshow.fanart') or art.get('fanart')
+    else:
+        poster = art.get('poster') or art.get('thumb')
+        fanart = art.get('fanart')
+    return {'poster': poster or '', 'fanart': fanart or ''}
+
+
+class _RatingDialog(xbmcgui.WindowXMLDialog):
+    """Landscape rating popup: a row of ten stars that fill up to the focused
+    one, with the number shown large underneath. Left/Right (or the mouse)
+    picks, OK confirms, Back skips. Layout lives in
+    resources/skins/Default/720p/script-scrob-rating.xml."""
+
+    _FIRST_STAR_ID = 101
+    _ACTIONS_CLOSE = (9, 10, 13, 92)  # PARENT_DIR, PREVIOUS_MENU, STOP, NAV_BACK
+
+    title = ''
+    default = 5
+    result = None
+    art = None
+
+    def onInit(self):
+        self.setProperty('title', self.title)
+        self.setProperty('poster', (self.art or {}).get('poster', ''))
+        self.setProperty('fanart', (self.art or {}).get('fanart', ''))
+        self.setProperty('rating', str(self.default))
+        self.setFocusId(self._FIRST_STAR_ID - 1 + self.default)
+
+    def onFocus(self, control_id):
+        value = control_id - (self._FIRST_STAR_ID - 1)
+        if 1 <= value <= 10:
+            self.setProperty('rating', str(value))
+
+    def onClick(self, control_id):
+        value = control_id - (self._FIRST_STAR_ID - 1)
+        if 1 <= value <= 10:
+            self.result = value
+            self.close()
+
+    def onAction(self, action):
+        if action.getId() in self._ACTIONS_CLOSE:
+            self.close()
+
+
+def _pick_rating(label, default, art=None):
+    """Show the rating popup; returns 1-10, or None when skipped."""
+    try:
+        addon_path = xbmcaddon.Addon(id=ADDON_ID).getAddonInfo('path')
+        dlg = _RatingDialog('script-scrob-rating.xml', addon_path, 'Default', '720p')
+        dlg.title = label
+        dlg.default = default
+        dlg.art = art
+        dlg.doModal()
+        result = dlg.result
+        del dlg
+        return result
+    except Exception as exc:
+        # Skin XML missing/rejected on some odd Kodi build: fall back to the
+        # plain list so rating still works.
+        xbmc.log('[service.scrob] rating popup failed, using list: {}'.format(exc), xbmc.LOGWARNING)
+    options = ['{0} {1}'.format(i, u'\u2605' * i) for i in range(1, 11)]
+    idx = xbmcgui.Dialog().select(label, options, preselect=default - 1)
+    return idx + 1 if idx >= 0 else None
+
+
 def _ask_and_post_rating(item):
     xbmc.sleep(1500)
     if item['type'] == 'episode':
@@ -354,10 +431,9 @@ def _ask_and_post_rating(item):
             item.get('showtitle', ''), item.get('season', 0), item.get('episode', 0))
     else:
         label = item.get('title', '')
-    options = ['{0} {1}'.format(i, u'★' * i) for i in range(1, 11)]
-    idx = xbmcgui.Dialog().select('Rate: {}'.format(label), options)
-    if idx >= 0:
-        _post_rating(item, idx + 1)
+    rating = _pick_rating('Rate: {}'.format(label), _settings()['rating_default'], item.get('_art'))
+    if rating:
+        _post_rating(item, rating)
 
 
 def _kodi_rpc(method, params=None):
@@ -502,7 +578,7 @@ def _read_item(player):
     try:
         result = _kodi_rpc('Player.GetItem', {
             'playerid': 1,
-            'properties': ['title', 'showtitle', 'season', 'episode', 'year', 'uniqueid'],
+            'properties': ['title', 'showtitle', 'season', 'episode', 'year', 'uniqueid', 'art'],
         })
         kodi_item = result.get('item', {})
     except Exception:
@@ -514,7 +590,7 @@ def _read_item(player):
 
     uid = kodi_item.get('uniqueid') or {}
 
-    item = {'type': media_type, 'uniqueid': uid}
+    item = {'type': media_type, 'uniqueid': uid, '_art': _pick_art(kodi_item.get('art'), media_type)}
     if media_type == 'movie':
         item['title'] = kodi_item.get('title', '')
         item['year'] = kodi_item.get('year')

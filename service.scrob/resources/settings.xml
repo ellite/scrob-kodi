@@ -99,6 +99,12 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
+                <setting id="rating_default" type="integer" label="30020">
+                    <level>0</level>
+                    <default>5</default>
+                    <constraints minimum="1" step="1" maximum="10"/>
+                    <control type="edit" format="integer"/>
+                </setting>
             </group>
         </category>
     </section>

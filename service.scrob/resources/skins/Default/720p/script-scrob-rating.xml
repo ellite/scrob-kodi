@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+    <defaultcontrol always="true">105</defaultcontrol>
+    <controls>
+        <!-- fanart, dimmed -->
+        <control type="image">
+            <left>0</left><top>0</top><width>1280</width><height>720</height>
+            <aspectratio scalediffuse="false">scale</aspectratio>
+            <texture>$INFO[Window.Property(fanart)]</texture>
+            <visible>!String.IsEmpty(Window.Property(fanart))</visible>
+        </control>
+        <control type="image">
+            <left>0</left><top>0</top><width>1280</width><height>720</height>
+            <texture colordiffuse="B3000000">white.png</texture>
+        </control>
+        <!-- soft purple edge -->
+        <control type="image">
+            <left>188</left><top>168</top><width>904</width><height>384</height>
+            <texture colordiffuse="66A855F7">white.png</texture>
+        </control>
+        <control type="image">
+            <left>190</left><top>170</top><width>900</width><height>380</height>
+            <texture colordiffuse="F21A1723">white.png</texture>
+        </control>
+        <!-- brand gradient bar -->
+        <control type="image">
+            <left>190</left><top>170</top><width>900</width><height>6</height>
+            <texture>gradient.png</texture>
+        </control>
+        <!-- poster, or the logo when Kodi has none -->
+        <control type="image">
+            <left>220</left><top>220</top><width>200</width><height>300</height>
+            <aspectratio>keep</aspectratio>
+            <texture>$INFO[Window.Property(poster)]</texture>
+            <visible>!String.IsEmpty(Window.Property(poster))</visible>
+        </control>
+        <control type="image">
+            <left>220</left><top>270</top><width>200</width><height>200</height>
+            <aspectratio>keep</aspectratio>
+            <texture>logo.png</texture>
+            <visible>String.IsEmpty(Window.Property(poster))</visible>
+        </control>
+        <!-- logo + wordmark -->
+        <control type="image">
+            <left>450</left><top>194</top><width>52</width><height>52</height>
+            <aspectratio>keep</aspectratio>
+            <texture>logo.png</texture>
+        </control>
+        <control type="label">
+            <left>514</left><top>194</top><width>300</width><height>52</height>
+            <aligny>center</aligny>
+            <font>font14</font><textcolor>FFB58BFF</textcolor>
+            <label>Scrob</label>
+        </control>
+        <control type="label">
+            <left>450</left><top>260</top><width>610</width><height>44</height>
+            <align>center</align><aligny>center</aligny>
+            <scroll>true</scroll>
+            <font>font14</font><textcolor>FFFFFFFF</textcolor>
+            <label>$INFO[Window.Property(title)]</label>
+        </control>
+        <control type="image">
+            <left>459</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>459</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(101)|Control.HasFocus(102)|Control.HasFocus(103)|Control.HasFocus(104)|Control.HasFocus(105)|Control.HasFocus(106)|Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>519</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>519</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(102)|Control.HasFocus(103)|Control.HasFocus(104)|Control.HasFocus(105)|Control.HasFocus(106)|Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>579</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>579</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(103)|Control.HasFocus(104)|Control.HasFocus(105)|Control.HasFocus(106)|Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>639</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>639</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(104)|Control.HasFocus(105)|Control.HasFocus(106)|Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>699</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>699</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(105)|Control.HasFocus(106)|Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>759</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>759</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(106)|Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>819</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>819</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(107)|Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>879</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>879</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(108)|Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>939</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>939</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(109)|Control.HasFocus(110)</visible>
+        </control>
+        <control type="image">
+            <left>999</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FF4A4658">star.png</texture>
+        </control>
+        <control type="image">
+            <left>999</left><top>330</top><width>52</width><height>52</height>
+            <texture colordiffuse="FFFFC107">star.png</texture>
+            <visible>Control.HasFocus(110)</visible>
+        </control>
+        <control type="label">
+            <left>450</left><top>396</top><width>610</width><height>70</height>
+            <align>center</align><aligny>center</aligny>
+            <font>font37</font><textcolor>FFFFC107</textcolor>
+            <label>$INFO[Window.Property(rating)]</label>
+        </control>
+        <control type="label">
+            <left>450</left><top>504</top><width>610</width><height>30</height>
+            <align>center</align><aligny>center</aligny>
+            <font>font12</font><textcolor>FF8A86A0</textcolor>
+            <label>$ADDON[service.scrob 30021]</label>
+        </control>
+        <control type="button" id="101">
+            <left>459</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>110</onleft><onright>102</onright>
+            <onup>101</onup><ondown>101</ondown>
+        </control>
+        <control type="button" id="102">
+            <left>519</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>101</onleft><onright>103</onright>
+            <onup>102</onup><ondown>102</ondown>
+        </control>
+        <control type="button" id="103">
+            <left>579</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>102</onleft><onright>104</onright>
+            <onup>103</onup><ondown>103</ondown>
+        </control>
+        <control type="button" id="104">
+            <left>639</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>103</onleft><onright>105</onright>
+            <onup>104</onup><ondown>104</ondown>
+        </control>
+        <control type="button" id="105">
+            <left>699</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>104</onleft><onright>106</onright>
+            <onup>105</onup><ondown>105</ondown>
+        </control>
+        <control type="button" id="106">
+            <left>759</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>105</onleft><onright>107</onright>
+            <onup>106</onup><ondown>106</ondown>
+        </control>
+        <control type="button" id="107">
+            <left>819</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>106</onleft><onright>108</onright>
+            <onup>107</onup><ondown>107</ondown>
+        </control>
+        <control type="button" id="108">
+            <left>879</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>107</onleft><onright>109</onright>
+            <onup>108</onup><ondown>108</ondown>
+        </control>
+        <control type="button" id="109">
+            <left>939</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>108</onleft><onright>110</onright>
+            <onup>109</onup><ondown>109</ondown>
+        </control>
+        <control type="button" id="110">
+            <left>999</left><top>330</top><width>52</width><height>52</height>
+            <label></label>
+            <texturefocus colordiffuse="00FFFFFF">white.png</texturefocus>
+            <texturenofocus colordiffuse="00FFFFFF">white.png</texturenofocus>
+            <onleft>109</onleft><onright>101</onright>
+            <onup>110</onup><ondown>110</ondown>
+        </control>
+    </controls>
+</window>

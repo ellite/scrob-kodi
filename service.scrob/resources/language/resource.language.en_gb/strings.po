@@ -68,3 +68,11 @@ msgstr ""
 msgctxt "#30019"
 msgid "Status"
 msgstr ""
+
+msgctxt "#30020"
+msgid "Default rating in the rating popup"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Left / Right to choose    OK to rate    Back to skip"
+msgstr ""
