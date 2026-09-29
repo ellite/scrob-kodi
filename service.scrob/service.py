@@ -316,10 +316,13 @@ def _update_connection_status():
 
 # ── Scrobbling ────────────────────────────────────────────────────────────────
 
-def _post(method, item, player_state, ended=False):
+def _post(method, item, player_state, ended=False, source=None):
     if not _settings()['sync_to_scrob']:
         return
     payload = {'method': method, 'item': item, 'player': player_state}
+    if source:
+        # Lets Scrob tell a library "mark as watched" apart from real playback.
+        payload['source'] = source
     if method == 'Player.OnStop':
         payload['params'] = {'data': {'end': ended}}
     if _api('webhooks/kodi', payload) is not None:
@@ -381,6 +384,14 @@ def _sync_from_scrob(monitor=None):
         if monitor is not None:
             monitor._suppress_onupdate_until = time.time() + seconds
 
+    def _expect(lib_type, lib_id, playcount):
+        # Kodi delivers the resulting VideoLibrary.OnUpdate notifications
+        # asynchronously - possibly long after the time-based mute above has
+        # expired on a big library - so each write is also remembered by id
+        # and its echo is recognised and dropped on arrival.
+        if monitor is not None:
+            monitor._expect_echo(lib_type, lib_id, playcount)
+
     _mute(600)
 
     library = _api('webhooks/kodi/history', timeout=30)
@@ -412,13 +423,18 @@ def _sync_from_scrob(monitor=None):
             if not tmdb_id:
                 continue
             changes = {}
-            if scrob_movies.get(tmdb_id, 0) > km.get('playcount', 0):
+            # Only ever fill a title Kodi has as unwatched. Comparing counts
+            # instead let every stray extra play recorded in Scrob push Kodi's
+            # count up again, which is what kept the sync looping.
+            if scrob_movies.get(tmdb_id, 0) > 0 and not km.get('playcount', 0):
                 changes['playcount'] = scrob_movies[tmdb_id]
             want = _want_rating(scrob_movie_ratings.get(tmdb_id))
             if want >= 1 and not km.get('userrating', 0):
                 changes['userrating'] = want
             if changes:
                 changes['movieid'] = km['movieid']
+                if 'playcount' in changes:
+                    _expect('movie', km['movieid'], changes['playcount'])
                 _kodi_rpc('VideoLibrary.SetMovieDetails', changes)
                 _mute()
 
@@ -448,13 +464,15 @@ def _sync_from_scrob(monitor=None):
                 continue
             k = (tmdb_id, ke['season'], ke['episode'])
             changes = {}
-            if scrob_eps.get(k, 0) > ke.get('playcount', 0):
+            if scrob_eps.get(k, 0) > 0 and not ke.get('playcount', 0):
                 changes['playcount'] = scrob_eps[k]
             want = _want_rating(scrob_ep_ratings.get(k))
             if want >= 1 and not ke.get('userrating', 0):
                 changes['userrating'] = want
             if changes:
                 changes['episodeid'] = ke['episodeid']
+                if 'playcount' in changes:
+                    _expect('episode', ke['episodeid'], changes['playcount'])
                 _kodi_rpc('VideoLibrary.SetEpisodeDetails', changes)
                 _mute()
 
@@ -552,6 +570,47 @@ class ScrobMonitor(xbmc.Monitor):
         self._last_ps = None
         self._scrobbled = {}
         self._suppress_onupdate_until = 0
+        # (lib_type, lib_id) -> playcount the add-on itself wrote during a sync
+        self._echoes = {}
+        # timestamps of recent mark-as-watched scrobbles, for the burst breaker
+        self._update_times = []
+        self._burst_until = 0
+
+    def _expect_echo(self, lib_type, lib_id, playcount):
+        with self._lock:
+            self._echoes[(lib_type, lib_id)] = int(playcount or 0)
+
+    def _consume_echo(self, lib_type, lib_id, playcount):
+        """True when this OnUpdate is the notification for a playcount the
+        add-on wrote itself (and forget it)."""
+        with self._lock:
+            expected = self._echoes.get((lib_type, lib_id))
+            if expected is None or int(playcount or 0) != expected:
+                return False
+            del self._echoes[(lib_type, lib_id)]
+            return True
+
+    _BURST_LIMIT = 30      # mark-as-watched scrobbles ...
+    _BURST_WINDOW = 60     # ... within this many seconds is a bulk operation
+    _BURST_PAUSE = 600     # ... so stop scrobbling them for this long
+
+    def _burst_tripped(self):
+        """A person marking things watched does a handful at a time; a library
+        scan, sync or another add-on touching hundreds of rows in a minute is
+        not something to replay into Scrob as fresh plays."""
+        now = time.time()
+        if now < self._burst_until:
+            return True
+        with self._lock:
+            self._update_times = [t for t in self._update_times if now - t < self._BURST_WINDOW]
+            self._update_times.append(now)
+            if len(self._update_times) > self._BURST_LIMIT:
+                self._burst_until = now + self._BURST_PAUSE
+                self._update_times = []
+                xbmc.log('[service.scrob] Too many library updates at once - not scrobbling '
+                         'mark-as-watched for {} minutes'.format(self._BURST_PAUSE // 60), xbmc.LOGWARNING)
+                return True
+        return False
 
     def _cache(self, item, ps):
         with self._lock:
@@ -646,6 +705,11 @@ class ScrobMonitor(xbmc.Monitor):
         lib_type, lib_id = lib.get('type'), lib.get('id')
         if lib_type not in ('movie', 'episode') or lib_id is None:
             return
+        # The echo of our own sync writing this playcount, not a user action.
+        if self._consume_echo(lib_type, lib_id, d.get('playcount')):
+            return
+        if self._burst_tripped():
+            return
 
         item, ps = self._library_item(lib_type, lib_id)
         if not item:
@@ -657,7 +721,7 @@ class ScrobMonitor(xbmc.Monitor):
 
         xbmc.log('[service.scrob] Scrobbling mark-as-watched: {}'.format(
             self._media_key(item)), xbmc.LOGINFO)
-        _post('Player.OnStop', item, ps, ended=True)
+        _post('Player.OnStop', item, ps, ended=True, source='library_update')
         self._mark_scrobbled(item)
 
     def onSettingsChanged(self):

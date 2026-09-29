@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Fix: syncing from Scrob could loop forever, re-scrobbling everything as new plays under one date. Kodi reports the playcounts the add-on writes itself as "marked as watched", the time-based mute could expire before those notifications arrived, and every echo added a play in Scrob that pushed the next sync's count higher. The add-on now recognises its own writes by item, only fills titles Kodi has as unwatched (never raises an existing count), and stops scrobbling mark-as-watched for 10 minutes if more than 30 arrive within a minute (a library scan or sync, not a person)
+- Library mark-as-watched scrobbles are now flagged so Scrob ignores them for titles it already has a play for
+
 ## 1.2.3
 
 - Fix: the **Status** line was not rendering in the settings screen (Kodi settings format has no `label` control type; updated to use a disabled `edit` control)
