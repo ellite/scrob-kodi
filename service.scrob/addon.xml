@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="service.scrob" name="Scrob" version="1.3.0" provider-name="Scrob">
+<addon id="service.scrob" name="Scrob" version="1.4.1" provider-name="Scrob">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
   <extension point="xbmc.service" library="service.py" start="login"/>
+  <extension point="xbmc.python.script" library="default.py">
+    <provides>executable</provides>
+  </extension>
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">Scrobble plays to your Scrob instance</summary>
     <description lang="en_GB">Automatically tracks movies and TV shows in your self-hosted Scrob instance as you watch them in Kodi.</description>
@@ -14,6 +17,13 @@
     <license>GPL-3.0-only</license>
     <source>https://github.com/ellite/scrob-kodi</source>
     <news>
+1.4.1
+- Fix exclusions for resolved plugin streams; add a video add-on picker to exclude an entire add-on
+
+1.4.0
+- New Excluded Paths setting: choose folders or Kodi video sources whose playback is never scrobbled to Scrob (events, progress, mark-as-watched, ratings and the rating popup)
+- Scrob now also appears under Program add-ons; opening it from there shows its settings
+
 1.3.0
 - New rating popup: landscape, Scrob-branded, with poster and fanart, a row of ten stars that fill up to your selection and the number shown large underneath. Left/Right to choose, OK to rate, Back to skip
 - New setting: default rating in the rating popup (1 to 10, default 5)

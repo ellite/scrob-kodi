@@ -52,6 +52,13 @@ Kodi repository and add-on for [Scrob](https://github.com/ellite/scrob) — the 
 | **Re-sync from Scrob every (minutes)** | Repeat the pull on this interval so several Kodi boxes converge; `0` = startup only | `0` |
 | **Rate movies / episodes after watching** | Show a 1–10 star popup when a title finishes | off |
 
+### Excluded Paths
+
+| Setting | Description | Default |
+|---|---|---|
+| **Currently excluded** | Read-only — how many paths are excluded | — |
+| **Manage excluded paths** | Add a folder, add one of your Kodi video sources, remove an entry, or clear the list | _(empty)_ |
+
 4. Restart Kodi (or the add-on) for the settings to take effect.
 
 ## How it works
@@ -65,6 +72,8 @@ A title is reported as a completed watch when playback passes the **Mark watched
 When **Keep Kodi library in sync from Scrob** is enabled, the add-on pulls your watch counts (and, optionally, ratings) from Scrob on startup — and, if **Re-sync from Scrob every** is set, on that interval — and writes them into the local library so watched state carries across multiple Kodi instances. Local values are only ever raised, never lowered, and a local rating is never overwritten.
 
 Only `movie` and `episode` media types are scrobbled; music and other content is ignored.
+
+Anything playing from an excluded path is never sent to Scrob — no play/pause/stop events, progress, mark-as-watched, ratings or rating popup. An entry matches that folder and everything beneath it (case-insensitive; credentials in `smb://user:pass@host/...` are ignored), and a `stack://` item is excluded if any part is. Exclusions only affect what is sent to Scrob; syncing from Scrob into your library is unchanged. Plugin (`plugin://`) items have no file path, so they cannot be excluded this way.
 
 ## Repository URLs
 

@@ -106,6 +106,26 @@
                     <control type="edit" format="integer"/>
                 </setting>
             </group>
+            <group id="4" label="30022">
+                <setting id="excluded_summary" type="string" label="30024">
+                    <level>0</level>
+                    <default>None - everything is scrobbled</default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                    <dependencies>
+                        <dependency type="enable" setting="excluded_summary" operator="is">__never__</dependency>
+                    </dependencies>
+                </setting>
+                <setting id="exclusions_action" type="action" label="30025">
+                    <level>0</level>
+                    <control type="button" format="action">
+                        <data>RunScript(special://home/addons/service.scrob/service.py,exclusions)</data>
+                        <close>true</close>
+                    </control>
+                </setting>
+            </group>
         </category>
     </section>
 </settings>
